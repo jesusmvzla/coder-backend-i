@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "title": "camiseta 2",
+    "description": "camiseta deportiva",
+    "category": "ropa deportiva",
+    "status": true,
+    "price": 90000,
+    "thumbnail": "camiseta.jpg",
+    "code": "1001",
+    "stock": 50
+  },
+  {
+    "id": 2,
+    "title": "pantalón",
+    "description": "pantalón deportiva",
+    "category": "ropa deportiva",
+    "status": true,
+    "price": 120000,
+    "thumbnail": "camiseta.jpg",
+    "code": "1002",
+    "stock": 25
+  },
+  {
+    "id": 3,
+    "title": "zapatos",
+    "description": "zapatos deportiva",
+    "category": "calzado deportivo",
+    "status": true,
+    "price": 80000,
+    "thumbnail": "camiseta.jpg",
+    "code": "1003",
+    "stock": 15
+  },
+  {
+    "id": 4,
+    "title": "hoodie",
+    "description": "hoodie urbana",
+    "category": "ropa urbana",
+    "status": true,
+    "price": 80000,
+    "thumbnail": "camiseta.jpg",
+    "code": "1004",
+    "stock": 10
+  }
+]
