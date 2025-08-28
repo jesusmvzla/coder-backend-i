@@ -1,0 +1,122 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    socket.on("connect", () => {
+        console.log("Conectado al servidor con id:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Servidor desconectado");
+    });
+
+    socket.on("updateProducts", (products) => {
+        const list = document.getElementById("productsList");
+        list.innerHTML = "";
+        list.className = "flex flex-wrap gap-8 mt-4  items-center";
+
+        products.forEach(product => {
+            const li = document.createElement("li");
+            li.className = "flex flex-col justify-center items-center gap-2 mt-4";
+
+            const img = document.createElement("img");
+            img.src = product.thumbnail;
+            img.alt = product.title;
+            img.className = "w-[150px] h-[150px] border rounded-md shadow-sm";
+
+            const buttonDelete = document.createElement("button");
+            buttonDelete.innerText = `Borrar producto`;
+            buttonDelete.className = "flex justify-center items-center border text-sm rounded-lg bg-blue-100 w-auto my-4 px-4 py-2 shadow-md";
+
+            const text = document.createElement("span");
+            text.innerText = `${product.title}`;
+            text.className = "font-semibold text-[20px]";
+
+            const textPrice = document.createElement("span");
+            textPrice.innerText = `Precio: $${product.price}`;
+            textPrice.className = "text-[12px]";
+
+            const textCode = document.createElement("span");
+            textCode.innerHTML = `Código: ${product.code}`;
+            textCode.className = "text-[9px]";
+
+            li.appendChild(img);
+            li.appendChild(text);
+            li.appendChild(textPrice);
+            li.appendChild(textCode);
+            li.appendChild(buttonDelete);
+            list.appendChild(li);
+
+            buttonDelete.addEventListener("click", () => {
+                socket.emit('deleteProduct', product.id);
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const productForm = document.getElementById('productForm');
+
+        productForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                status: document.getElementById('status').value,
+                price: parseFloat(document.getElementById('price').value),
+                thumbnail: document.getElementById('thumbnail').value,
+                code: parseInt(document.getElementById('code').value),
+                stock: parseInt(document.getElementById('stock').value)
+            };
+
+            socket.emit('createProduct', formData);
+        });
+    });
+
+    socket.on("productError", (products) => {
+        alert("Campos incompletos o ID ya en uso, inténtelo de nuevo");
+    });
+
+    socket.on("productCreated", (data) => {
+        alert(data.message);
+    })
+
+    socket.on("productDeleted", (data) => {
+        alert(data.message);
+        console.log(data.message);
+    })
+
+
+</script>
+
+
+<link rel="stylesheet" href="/stylesheets/style.css">
+
+<div class=" px-5">
+    <h1 class="text-xl font-semibold text-center">Lista dinámica con Websockets</h1>
+    <ul id="productsList" class="flex flex-col gap-5 mb-5"></ul>
+</div>
+
+<form id="productForm" class="border bg-gray-200 m-5 px-2 flex flex-col items-center gap-3" action="">
+    <h2 class="font-semibold text-xl">Formulario crear producto</h2>
+    <label for="title">Nombre del producto</label>
+    <input id="title" class="px-2 border rounded-lg w-[300px] h-auto" type="text">
+    <label for="description">Descripción del producto</label>
+    <input id="description" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="category">Categoría del producto</label>
+    <input id="category" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="status">Status (true or false)</label>
+    <input id="status" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="price">Precio</label>
+    <input id="price" class="px-2 border rounded-lg w-[300px]" type="number">
+    <label for="thumbnail">Imagen URL</label>
+    <input id="thumbnail" class="px-2 border rounded-lg w-[300px]" type="url">
+    <label for="code">Código del producto</label>
+    <input id="code" class="px-2 border rounded-lg w-[300px]" type="number">
+    <label for="stock">Stock</label>
+    <input id="stock" class="px-2 border rounded-lg w-[150px]" type="number">
+
+    <button class="flex justify-center items-center border rounded-lg bg-blue-100 w-[180px] my-4 px-4 py-2 shadow-md"
+        type="submit">Crear producto</button>
+</form>

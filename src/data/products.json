@@ -1,46 +1,57 @@
 [
   {
     "id": 1,
-    "title": "camiseta 2",
+    "title": "Camiseta",
     "description": "camiseta deportiva",
     "category": "ropa deportiva",
     "status": true,
     "price": 90000,
-    "thumbnail": "camiseta.jpg",
+    "thumbnail": "https://cdn-cddie.nitrocdn.com/GaBUstKTaYleCTvEedaJdIWQdhXiCdJJ/assets/images/optimized/rev-6e4bc99/ripplefl.co/wp-content/uploads/2025/01/Azul-Turquesa-2x2-1-558x600.jpg",
     "code": "1001",
     "stock": 50
   },
   {
     "id": 2,
-    "title": "pantalón",
+    "title": "Pantalón",
     "description": "pantalón deportiva",
     "category": "ropa deportiva",
     "status": true,
     "price": 120000,
-    "thumbnail": "camiseta.jpg",
+    "thumbnail": "https://monasterycouture.com.co/cdn/shop/files/ANCYRUSBLACK3.jpg",
     "code": "1002",
     "stock": 25
   },
   {
     "id": 3,
-    "title": "zapatos",
+    "title": "Zapatos",
     "description": "zapatos deportiva",
     "category": "calzado deportivo",
     "status": true,
     "price": 80000,
-    "thumbnail": "camiseta.jpg",
+    "thumbnail": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/f575cfa1db914d1eb4b33eb7f2350f6e_9366/Tenis_de_running_Duramo_RC2_Negro_JS4435_01_00_standard.jpg",
     "code": "1003",
     "stock": 15
   },
   {
     "id": 4,
-    "title": "hoodie",
+    "title": "Hoodie",
     "description": "hoodie urbana",
     "category": "ropa urbana",
     "status": true,
     "price": 80000,
-    "thumbnail": "camiseta.jpg",
+    "thumbnail": "https://contents.mediadecathlon.com/p2918210/1cr1/k$7bde4f8ec50c4a5719a085eb69659fbc/saco-con-capucha-mujer-fitness-essentials-gris.jpg",
     "code": "1004",
+    "stock": 10
+  },
+  {
+    "id": 5,
+    "title": "Gorra",
+    "description": "Gorra deportiva",
+    "category": "Accesorios",
+    "status": "true",
+    "price": 45000,
+    "thumbnail": "https://contents.mediadecathlon.com/p2797352/1cr1/k$e488c1be7f459e3089b0ec6a1bc24e8b/gorra-deportiva-artengo-tc-900-negro-t58.jpg",
+    "code": 1005,
     "stock": 10
   }
 ]

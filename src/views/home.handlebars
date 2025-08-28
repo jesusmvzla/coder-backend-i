@@ -1,0 +1,11 @@
+<h1>Productos disponibles en Handlebars</h1>
+
+<ul>
+{{#each products}}
+    <li>Nombre: {{this.title}} - Precio: ${{this.price}}</li>
+    {{/each}}
+</ul>
+
+
+<button onclick="window.location.href='/realTimeProducts'">Ir a productos con WebSocket</button>
+

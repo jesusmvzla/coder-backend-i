@@ -1,7 +1,11 @@
-import fs from "fs/promises";
-import path from "path";
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const PRODUCTS_FILE = path.resolve('src/data/products.json');
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PRODUCTS_FILE = path.join(__dirname, '../data/products.json');
 
 export default class ProductManager {
     constructor() {
@@ -37,9 +41,10 @@ export default class ProductManager {
     async getProducts() {
         try {
             const data = await fs.readFile(PRODUCTS_FILE, "utf-8");
-            return JSON.parse(data);
+            const products = JSON.parse(data);
+            return products;
+
         } catch (error) {
-            console.log("No hay productos en la base de datos")
             return [];
         }
     }
@@ -79,9 +84,11 @@ export default class ProductManager {
             let products = await this.getProducts();
             const productDeleted = products.filter(p => p.id !== id);
             await fs.writeFile(PRODUCTS_FILE, JSON.stringify(productDeleted, null, 2));
+            return true;
 
         } catch {
             console.log("Error de conexión, inténtalo de nuevo.")
+            return false;
         }
     }
 }
