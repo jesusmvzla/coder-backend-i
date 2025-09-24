@@ -88,6 +88,17 @@
         list.innerHTML = "";
         list.className = "flex flex-wrap justify-center gap-8 mt-4  items-center";
 
+        function addDeleteListeners() {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                console.log("se disparó borrar")
+                const productId = e.target.parentElement.getAttribute('data-id');
+                socket.emit('deleteProduct', productId);
+            });
+        });
+    }
+
 (data.docs || []).forEach(product => {
             const li = document.createElement("li");
             li.className = "flex flex-col justify-center items-center gap-2 mt-4";
@@ -100,7 +111,7 @@
 
             const buttonDelete = document.createElement("button");
             buttonDelete.innerText = `Borrar producto`;
-            buttonDelete.className = "flex justify-center items-center border text-sm rounded-lg bg-blue-100 w-auto my-4 px-4 py-2 shadow-md";
+            buttonDelete.className = "delete-btn flex justify-center items-center border text-sm rounded-lg bg-blue-100 w-auto my-4 px-4 py-2 shadow-md";
 
             const text = document.createElement("span");
             text.innerText = `${product.title}`;
@@ -121,15 +132,7 @@
             li.appendChild(buttonDelete);
             list.appendChild(li);
 
-function addDeleteListeners() {
-        const deleteButtons = document.querySelectorAll('.delete-btn');
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const productId = e.target.parentElement.getAttribute('data-id');
-                socket.emit('deleteProduct', productId);
-            });
-        });
-    }
+    addDeleteListeners();
 
         });
     });
