@@ -1,7 +1,10 @@
 import express from "express";
 import ProductManager from './managers/ProductManager.js';
 import CartManager from './managers/CartManager.js';
+import { Router } from "express";
 import expressHandlebars from 'express-handlebars';
+import productModel from './models/products.model.js';
+import mongoose from "mongoose";
 import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
@@ -12,6 +15,7 @@ const app = express();
 const PORT = 3030;
 const manager = new ProductManager();
 const cartManager = new CartManager();
+const router = Router();
 
 //Handlebars const
 const __filename = fileURLToPath(import.meta.url);
@@ -21,20 +25,19 @@ const __dirname = path.dirname(__filename);
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-let products = [];
-try {
-   const Data = await fs.readFile(path.join(__dirname, 'data', 'products.json'), 'utf-8');
-   products = JSON.parse(Data);
+//Mongoose
+mongoose.connect("mongodb+srv://jmvzla:coderhouse@cluster0.pgabbao.mongodb.net/productdb?retryWrites=true&w=majority&appName=Cluster0")
+   .then(() => console.log("conectado a la base de datos en mongoose!"))
+   .catch((error) => console.log("hay un error: ", error));
 
-} catch (error) {
-   console.error('Error leyendo el archivo products.json:', error);
-}
 
-// WebSockets
+// const products = await productModel.find().lean()
+let products = []
+
+
+// WebSockets y Mongoose
 io.on("connection", (socket) => {
    console.log("Nuevo cliente conectado", socket.id);
-
-   socket.emit("updateProducts", products);
 
    socket.on("createProduct", async (productData) => {
 
@@ -47,8 +50,9 @@ io.on("connection", (socket) => {
          return;
       }
 
-      const oldProducts = await manager.getProducts();
-      const codeExists = await oldProducts.some(product => product.code === code);
+      const oldProducts = await productModel.find().lean();
+      const codeExists = await oldProducts.some(products => products.code === code);
+
 
       if (codeExists) {
          socket.emit('productError', { message: `El código ${code} ya existe` });
@@ -56,9 +60,10 @@ io.on("connection", (socket) => {
          return;
       }
 
-      manager.addProduct(title, description, category, status, price, thumbnail, code, stock);
+      const nuevoProducto = new productModel(productData)
+      await nuevoProducto.save()
 
-      const updatedProducts = await manager.getProducts();
+      const updatedProducts = await productModel.paginate({}, { page: 1, limit: 3, lean: true });
       io.emit('updateProducts', updatedProducts);
 
 
@@ -67,16 +72,53 @@ io.on("connection", (socket) => {
 
    socket.on("deleteProduct", async (productId) => {
 
-      const deleteProduct = await manager.deleteProduct(productId);
+      const deleteProduct = await productModel.findByIdAndDelete(productId)
+
       console.log(`Producto ${productId} eliminado exitosamente`);
       console.log("esto me devuelve delete: ", deleteProduct)
+
       if (deleteProduct) {
          socket.emit('productDeleted', { message: `Producto con ID: ${productId} ha sido eliminado exitosamente.` })
          console.log(`Producto con ID: "${productId}" ha sido eliminado exitosamente`);
-         const updatedProducts = await manager.getProducts();
+         const updatedProducts = await productModel.paginate({}, { page: 1, limit: 3, lean: true });
          io.emit('updateProducts', updatedProducts);
       }
    })
+
+   socket.on("filterCategory", async (data) => {
+      const { category, page = 1, limit = 3, sort  } = data;
+      console.log(`Filtrando por: ${category}, Página: ${page}, Límite: ${limit}, Precio ${sort}`);
+
+      try {
+
+         const query = {};
+         if (category) {
+            query.category = category;
+         }
+
+         const options = {
+            page: page,
+            limit: limit,
+            lean: true
+        };
+
+        if (sort) {
+         options.sort = sort;
+        }
+         const listadoProducts = await productModel.paginate(query, options);
+
+         socket.emit("updateProducts", listadoProducts);
+         console.log(`Filtro aplicado para categoría: "${category}". Se encontraron ${listadoProducts.totalDocs} productos.`);
+
+      } catch (error) {
+         console.log("Error al filtrar productos:", error);
+         // Informa al cliente si algo salió mal
+         socket.emit('productError', { message: 'Hubo un error al obtener los productos.' });
+      }
+
+   })
+
+
 });
 
 //Middleware
@@ -90,12 +132,31 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ENDPOINTS PRODUCTS
-app.get("/", (req, res) => {
-   res.render("home", { products });
+app.use("/productsmongoose", router)
+
+app.get("/", async (req, res) => {
+   let page = parseInt(req.query.page) || 1;
+   let limit = 3;
+
+   try {
+      const listadoProducts = await productModel.paginate({}, { limit, page, lean: true });
+
+      res.render("realTimeProducts", {
+         products: listadoProducts.docs,
+         hasPrevPage: listadoProducts.hasPrevPage,
+         hasNextPage: listadoProducts.hasNextPage,
+         prevPage: listadoProducts.prevPage, // 
+         nextPage: listadoProducts.nextPage,
+         currentPage: listadoProducts.page,
+         totalPages: listadoProducts.totalPages
+      });
+   } catch (error) {
+      console.log(error);
+      res.status(500).send("no responde");
+   }
 })
-app.get("/realtimeproducts", (req, res) => {
-   res.render("realTimeProducts", { products });
-})
+// res.render("realTimeProducts", { products });
+
 app.get("/products", async (req, res) => {
    const products = await manager.getProducts();
    res.send(products);

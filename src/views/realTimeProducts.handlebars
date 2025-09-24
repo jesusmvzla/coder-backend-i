@@ -1,3 +1,76 @@
+<link rel="stylesheet" href="/stylesheets/style.css">
+
+<div class=" px-5">
+    <h1 class="text-xl font-semibold text-center">Lista dinámica con Websockets</h1>
+ <ul id="productsList" class="flex flex-wrap justify-center gap-8 mt-4 items-center">
+        {{#each products}}
+            <li class="flex flex-col justify-center items-center gap-2 mt-4" data-id="{{this._id}}">
+                <img src="{{this.thumbnail}}" alt="{{this.title}}" class="w-[150px] h-[150px] border rounded-md shadow-sm">
+                <span class="font-semibold text-[20px]">{{this.title}}</span>
+                <span class="text-[12px]">Precio: ${{this.price}}</span>
+                <span class="text-[9px]">Código: {{this.code}}</span>
+                <button class="delete-btn flex justify-center items-center border text-sm rounded-lg bg-blue-100 w-auto my-4 px-4 py-2 shadow-md">Borrar producto</button>
+            </li>
+        {{/each}}
+    </ul>
+</div>
+
+<div class="mb-5 flex justify-center gap-5">
+<span>Filtrar por categoría:</span>
+<button class="bg-green-200 border px-2 rounded-lg shadow-md" id="categoriaRopaDeportiva">Ropa Deportiva</button>
+    <button class="bg-green-200 border px-2 rounded-lg shadow-md" id="categoriaCalzadoDeportivo">Calzado Deportivo</button>
+    <button class="bg-green-200 border px-2 rounded-lg shadow-md" id="categoriaRopaUrbana">Ropa Urbana</button>
+    <button class="bg-green-200 border px-2 rounded-lg shadow-md" id="categoriaAccesorios">Accesorios</button>
+    <button class="bg-red-200 border px-2 rounded-lg shadow-md" id="verTodo">Ver todo</button>
+
+</div>
+
+<div class="mb-5 flex justify-center gap-5">
+<span>Filtrar precio:</span>
+<button class="bg-green-200 border px-2 rounded-lg shadow-md" id="botonBarato">Más baratos primero</button>
+    <button class="bg-green-200 border px-2 rounded-lg shadow-md" id="botonCaro">Más costosos primero</button>
+
+
+</div>
+
+<div class="flex gap-5 justify-center">
+
+    {{#if hasPrevPage}}
+    <a class="bg-gray-200 border px-2 rounded-lg shadow-md" href="/?page={{prevPage}}">Anterior</a>
+    {{/if}}
+    <p>Página {{currentPage}} de {{totalPages}}</p>
+
+    {{#if hasNextPage}}
+    <a class="bg-gray-200 border px-2 rounded-lg shadow-md" href="/?page={{nextPage}}">Siguiente</a>
+    {{/if}}
+
+
+</div>
+
+
+<form id="productForm" class="border bg-gray-200 m-5 px-2 flex flex-col items-center gap-3" action="">
+    <h2 class="font-semibold text-xl">Formulario crear producto</h2>
+    <label for="title">Nombre del producto</label>
+    <input id="title" class="px-2 border rounded-lg w-[300px] h-auto" type="text">
+    <label for="description">Descripción del producto</label>
+    <input id="description" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="category">Categoría del producto</label>
+    <input id="category" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="status">Status (true or false)</label>
+    <input id="status" class="px-2 border rounded-lg w-[300px]" type="text">
+    <label for="price">Precio</label>
+    <input id="price" class="px-2 border rounded-lg w-[300px]" type="number">
+    <label for="thumbnail">Imagen URL</label>
+    <input id="thumbnail" class="px-2 border rounded-lg w-[300px]" type="url">
+    <label for="code">Código del producto</label>
+    <input id="code" class="px-2 border rounded-lg w-[300px]" type="number">
+    <label for="stock">Stock</label>
+    <input id="stock" class="px-2 border rounded-lg w-[150px]" type="number">
+
+    <button class="flex justify-center items-center border rounded-lg bg-blue-100 w-[180px] my-4 px-4 py-2 shadow-md"
+        type="submit">Crear producto</button>
+</form>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
@@ -10,14 +83,15 @@
         console.log("Servidor desconectado");
     });
 
-    socket.on("updateProducts", (products) => {
+    socket.on("updateProducts", (data) => {
         const list = document.getElementById("productsList");
         list.innerHTML = "";
-        list.className = "flex flex-wrap gap-8 mt-4  items-center";
+        list.className = "flex flex-wrap justify-center gap-8 mt-4  items-center";
 
-        products.forEach(product => {
+(data.docs || []).forEach(product => {
             const li = document.createElement("li");
             li.className = "flex flex-col justify-center items-center gap-2 mt-4";
+            li.setAttribute('data-id', product._id);
 
             const img = document.createElement("img");
             img.src = product.thumbnail;
@@ -47,9 +121,16 @@
             li.appendChild(buttonDelete);
             list.appendChild(li);
 
-            buttonDelete.addEventListener("click", () => {
-                socket.emit('deleteProduct', product.id);
+function addDeleteListeners() {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const productId = e.target.parentElement.getAttribute('data-id');
+                socket.emit('deleteProduct', productId);
             });
+        });
+    }
+
         });
     });
 
@@ -72,6 +153,57 @@
 
             socket.emit('createProduct', formData);
         });
+
+    const botonCalzadoDeportivo = document.getElementById("categoriaCalzadoDeportivo");
+    botonCalzadoDeportivo.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory',  { category: 'calzado deportivo', page: 1 })
+    })
+
+        const botonRopaDeportiva = document.getElementById("categoriaRopaDeportiva");
+    botonRopaDeportiva.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory',  { category: 'ropa deportiva', page: 1 })
+    })
+
+            const botonAccesorios = document.getElementById("categoriaAccesorios");
+    botonAccesorios.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory',  { category: 'Accesorios', page: 1 })
+    })
+
+                const botonRopaUrbana = document.getElementById("categoriaRopaUrbana");
+    botonRopaUrbana.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory',  { category: 'ropa urbana', page: 1 })
+    })
+
+                    const botonVerTodo = document.getElementById("verTodo");
+    botonVerTodo.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory', { page: 1, limit: 3 });
+    })
+
+                        const botonBarato = document.getElementById("botonBarato");
+    botonBarato.addEventListener("click", () => {
+        console.log("se disparo categoría")
+                socket.emit('filterCategory', { 
+            page: 1, 
+            limit: 3, 
+            sort: { price: 1 }
+        })
+    })
+
+                        const botonCaro = document.getElementById("botonCaro");
+    botonCaro.addEventListener("click", () => {
+        console.log("se disparo categoría")
+        socket.emit('filterCategory', { 
+            page: 1, 
+            limit: 3, 
+            sort: { price: -1 }
+        })
+    })
+
     });
 
     socket.on("productError", (products) => {
@@ -89,34 +221,3 @@
 
 
 </script>
-
-
-<link rel="stylesheet" href="/stylesheets/style.css">
-
-<div class=" px-5">
-    <h1 class="text-xl font-semibold text-center">Lista dinámica con Websockets</h1>
-    <ul id="productsList" class="flex flex-col gap-5 mb-5"></ul>
-</div>
-
-<form id="productForm" class="border bg-gray-200 m-5 px-2 flex flex-col items-center gap-3" action="">
-    <h2 class="font-semibold text-xl">Formulario crear producto</h2>
-    <label for="title">Nombre del producto</label>
-    <input id="title" class="px-2 border rounded-lg w-[300px] h-auto" type="text">
-    <label for="description">Descripción del producto</label>
-    <input id="description" class="px-2 border rounded-lg w-[300px]" type="text">
-    <label for="category">Categoría del producto</label>
-    <input id="category" class="px-2 border rounded-lg w-[300px]" type="text">
-    <label for="status">Status (true or false)</label>
-    <input id="status" class="px-2 border rounded-lg w-[300px]" type="text">
-    <label for="price">Precio</label>
-    <input id="price" class="px-2 border rounded-lg w-[300px]" type="number">
-    <label for="thumbnail">Imagen URL</label>
-    <input id="thumbnail" class="px-2 border rounded-lg w-[300px]" type="url">
-    <label for="code">Código del producto</label>
-    <input id="code" class="px-2 border rounded-lg w-[300px]" type="number">
-    <label for="stock">Stock</label>
-    <input id="stock" class="px-2 border rounded-lg w-[150px]" type="number">
-
-    <button class="flex justify-center items-center border rounded-lg bg-blue-100 w-[180px] my-4 px-4 py-2 shadow-md"
-        type="submit">Crear producto</button>
-</form>
